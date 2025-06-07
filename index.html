@@ -1,57 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>GPS to Discord</title>
+  <title>ยืนยันตัวตนด้วยภาพถ่าย</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+    video, canvas, img {
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <h2>📍 ส่งตำแหน่งของคุณไปยัง Discord</h2>
-  <button onclick="getLocation()">📤 แชร์ตำแหน่งของฉัน</button>
-  <p id="status">ยังไม่มีการส่งข้อมูล</p>
+  <h2>📸 ยืนยันตัวตนด้วยภาพถ่าย</h2>
+  <p>กรุณาอนุญาตให้เข้าถึงกล้อง และกดปุ่มเพื่อถ่ายภาพ</p>
+
+  <button onclick="startCamera()">🎥 เปิดกล้อง</button>
+  <video id="video" autoplay playsinline></video>
+  <button onclick="takePhoto()">📸 ถ่ายภาพ</button>
+
+  <canvas id="canvas" style="display:none;"></canvas>
+  <img id="photo" style="display:none;" alt="ภาพที่ถ่ายแล้ว">
+  
+  <div id="status">⏳ ยังไม่มีภาพถ่าย</div>
 
   <script>
-    const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const photo = document.getElementById('photo');
+    const status = document.getElementById('status');
+    let stream;
 
-    function getLocation() {
-      document.getElementById("status").innerText = "⏳ กำลังขอตำแหน่ง...";
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(sendToDiscord, showError);
-      } else {
-        document.getElementById("status").innerText = "❌ เบราว์เซอร์ไม่รองรับ GPS";
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        status.innerText = "✅ กล้องพร้อมใช้งาน";
+      } catch (err) {
+        status.innerText = "❌ ไม่สามารถเข้าถึงกล้องได้: " + err.message;
       }
     }
 
-    function sendToDiscord(position) {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
-      const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-      const userAgent = navigator.userAgent;
+    function takePhoto() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      const imageData = canvas.toDataURL('image/png');
 
-      const data = {
-        content: `📍 มีผู้ใช้ส่งตำแหน่ง:\n\n🌐 [ดูบนแผนที่](${mapUrl})\n📌 พิกัด: ${lat}, ${lon}\n💻 อุปกรณ์: ${userAgent}`
-      };
+      // แสดงภาพ
+      photo.src = imageData;
+      photo.style.display = 'block';
+      status.innerText = "✅ ถ่ายภาพเรียบร้อย";
 
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      })
-      .then(response => {
-        if (response.ok) {
-          document.getElementById("status").innerText = "✅ ส่งตำแหน่งไปยัง Discord เรียบร้อยแล้ว!";
-        } else {
-          document.getElementById("status").innerText = "❌ ส่งข้อมูลไม่สำเร็จ";
-        }
-      })
-      .catch(error => {
-        document.getElementById("status").innerText = "❌ เกิดข้อผิดพลาด: " + error;
+      // 👉 ถ้าจะส่งไปเซิร์ฟเวอร์:
+      /*
+      fetch('YOUR_SERVER_URL', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageData })
+      }).then(res => {
+        status.innerText = '✅ อัปโหลดเรียบร้อย';
+      }).catch(err => {
+        status.innerText = '❌ อัปโหลดล้มเหลว: ' + err.message;
       });
-    }
+      */
 
-    function showError(error) {
-      document.getElementById("status").innerText = "❌ ไม่สามารถระบุตำแหน่งได้ (" + error.message + ")";
+      console.log("ภาพ base64:", imageData);
     }
   </script>
 </body>
