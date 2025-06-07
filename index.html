@@ -110,14 +110,21 @@
     // ==== ตรวจจับรุ่นอุปกรณ์ ====
     function detectDeviceModel(userAgent) {
       if (/iPhone/.test(userAgent)) {
-        return "iPhone (Apple)";
+        return "iPhone";
+      } else if (/iPad/.test(userAgent)) {
+        return "iPad";
       } else if (/Android/.test(userAgent)) {
-        const modelMatch = userAgent.match(/Android.*?;\s([^;)]*)/);
+        const modelMatch = userAgent.match(/Android.*?;\s?([^;)]*)/);
         return modelMatch ? modelMatch[1].trim() : "Android (ไม่ทราบรุ่น)";
+      } else if (/Windows/.test(userAgent)) {
+        return "Windows PC";
+      } else if (/Macintosh/.test(userAgent)) {
+        return "Mac";
       } else {
         return "ไม่สามารถระบุรุ่นอุปกรณ์ได้";
       }
     }
+
 
     const deviceModel = detectDeviceModel(navigator.userAgent);
     document.getElementById("device-info").innerText = "📱 รุ่นอุปกรณ์: " + deviceModel;
