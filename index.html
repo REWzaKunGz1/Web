@@ -1,29 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ตรวจสอบ IP บ้าน</title>
+  <meta charset="UTF-8">
+  <title>ระบุตำแหน่งผู้ใช้</title>
 </head>
 <body>
-  <h2>ข้อมูล IP ของคุณ:</h2>
-  <pre id="info">กำลังโหลด...</pre>
+  <h2>ระบุตำแหน่งของคุณ</h2>
+  <button onclick="getLocation()">📍 แสดงตำแหน่งของฉัน</button>
+  <p id="location">ตำแหน่งจะปรากฏตรงนี้</p>
 
   <script>
-    fetch('https://ipinfo.io/json?token=7d2f1d046419ac')
-      .then(response => response.json())
-      .then(data => {
-        const output = `
-IP: ${data.ip}
-เมือง: ${data.city}
-ประเทศ: ${data.country}
-ตำแหน่งพิกัด: ${data.loc}
-ISP: ${data.org}
-เบราว์เซอร์: ${navigator.userAgent}
-        `;
-        document.getElementById("info").textContent = output;
-      })
-      .catch(error => {
-        document.getElementById("info").textContent = "เกิดข้อผิดพลาด: " + error;
-      });
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+        document.getElementById("location").innerText = "เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง";
+      }
+    }
+
+    function showPosition(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const url = `https://www.google.com/maps?q=${lat},${lon}`;
+      document.getElementById("location").innerHTML =
+        `📍 ละติจูด: ${lat}<br>📍 ลองจิจูด: ${lon}<br>` +
+        `<a href="${url}" target="_blank">🌍 เปิดบน Google Maps</a>`;
+    }
+
+    function showError(error) {
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          document.getElementById("location").innerText = "❌ คุณไม่อนุญาตให้เข้าถึงตำแหน่ง";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          document.getElementById("location").innerText = "❌ ไม่พบข้อมูลตำแหน่ง";
+          break;
+        case error.TIMEOUT:
+          document.getElementById("location").innerText = "⏳ หมดเวลาการขอตำแหน่ง";
+          break;
+        default:
+          document.getElementById("location").innerText = "❗ เกิดข้อผิดพลาดไม่ทราบสาเหตุ";
+          break;
+      }
+    }
   </script>
 </body>
 </html>
